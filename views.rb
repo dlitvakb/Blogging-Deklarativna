@@ -161,6 +161,10 @@ class PostsView < BaseView
     @title = "Deklarativna's Blog"
   end
 
+  def _nav_bar_items
+    super.push(__nav_bar_item "Create Post", "/posts/create/", false)
+  end
+
   def _render_post post
     [
       h2 { post.title },
