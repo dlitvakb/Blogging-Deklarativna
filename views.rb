@@ -162,13 +162,18 @@ class PostsView < BaseView
   end
 
   def _nav_bar_items
-    super.push(__nav_bar_item "Create Post", "/posts/create/", false)
+    super << (__nav_bar_item "Create Post", "/posts/create/", false)
   end
 
   def _render_post post
+    categories = []
+    post.categories.each do |category|
+      categories << a("href"=>"/posts/category/#{category.name}") { category.name }
+    end
     [
       h2 { post.title },
-      p { post.body }
+      p { post.body },
+      h6 { categories.join(" ") }
     ]
   end
 
@@ -208,6 +213,7 @@ class PostCreateView < FormView
     form("method"=>"post","action"=>"/posts/create/") {[
       (_input "Title", "title", text("name"=>"title")),
       (_input "Body", "body", textarea("name"=>"body", "rows"=>"10")),
+      (_input "Categories", "categories", text("name"=>"categories")),
       _submit("Post!")
     ]}
   end
