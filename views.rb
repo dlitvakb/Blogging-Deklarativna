@@ -19,7 +19,7 @@ class BaseView < BaseTemplate
 
   def _scripts
     [
-      javascript("src"=>"http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"),
+      javascript("src"=>"http://code.jquery.com/jquery-latest.js"),
     ]
   end
 
@@ -215,6 +215,14 @@ class PostsView < BaseView
     super request
     @posts = posts
     @title = "Deklarativna's Blog"
+  end
+
+  def _scripts
+    super << javascript {
+      "$(document).ready(function () {
+         $('#content').addClass('span12');
+       });"
+    }
   end
 
   def _nav_bar_items
