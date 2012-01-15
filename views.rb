@@ -99,6 +99,62 @@ class BaseView < BaseTemplate
 end
 
 class IndexView < BaseView
+  def _content
+    [
+      div("class"=>"hero-unit") {[
+        h1 { "Deklarativna's Blog" },
+        p { "A blog about declarative programming" },
+        p { 
+          a("href"=>"/posts/", "class"=>"btn primary large") {
+            "To the Posts! &raquo;"
+          }
+        }
+      ]},
+      div("class"=>"row") {[
+        div("class"=>"span5") {[
+          h2 { "A little bit about me" },
+          p {
+            "I'm an enthusiastic programmer interested in
+             new ways to develop, always trying to expand and extend
+             the tools and help people to discover more and more..."
+            },
+          br,
+          p {
+            a("href"=>"/about/", "class"=>"btn") {
+              "About me &raquo;"
+            }
+          }
+        ]},
+        div("class"=>"span6") {[
+          h2 { "About Deklarativna" },
+          p {
+            "Deklarativna is a templating framework for ruby. #{br}
+             The idea after it, was to allow developers to write
+             the html templates in ruby code, and to allow them to
+             have a fully integrated frontend development experience. #{br}
+             Also, it was created as teaching material for my students."
+          },
+          p {
+            a("href"=>"http://www.github.com/dlitvakb/deklarativna", "class"=>"btn") {
+              "Find out more! &raquo;"
+            }
+          }
+        ]},
+        div("class"=>"span6") {[
+          h2 { "What other resources do I use?" },
+          p {
+            "As I intend to program this blog in a fully declarative way,
+             I've found that the best resources to fit my intentions were
+             #{a("href"=>"http://www.sinatrarb.com") {"Sinatra"}} and
+             #{a("href"=>"http://www.datamapper.org") {"DataMapper"}}. #{br}
+             As I've found #{a("href"=>"http://www.ruby-lang.org") {"Ruby"}} to be
+             an amazing programming language to write in a declarative way,
+             it has been, therefore my desicion to use it"
+          }
+        ]}
+      ]}
+    ]
+  end
 end
 
 class AboutView < BaseView
@@ -128,11 +184,11 @@ class AboutView < BaseView
   end
 
   def _twitter
-    a("href"=>"www.twitter.com/dlitvakb") { "Twitter" }
+    a("href"=>"http://www.twitter.com/dlitvakb") { "Twitter" }
   end
 
   def _github
-    a("href"=>"www.github.com/dlitvakb") { "GitHub" }
+    a("href"=>"http://www.github.com/dlitvakb") { "GitHub" }
   end
 
   def _contact_info
@@ -168,16 +224,32 @@ class PostsView < BaseView
   def _categories post
     categories = []
     post.categories.each do |category|
-      categories << a("href"=>"/posts/category/#{category.name}") { category.name }
+      categories << a("href"=>"/posts/category/#{category.name}/") { category.name }
     end
     categories
+  end
+
+  def _posted_at post
+    date_iso_splitted = post.created_at.to_s.split("T")
+    date_iso_splitted[1] = date_iso_splitted[1].split("-")[0]
+    date_part = date_iso_splitted[0].split("-")
+    year = date_part[0]
+    month = date_part[1]
+    day = date_part[2]
+
+    a("href"=>"/posts/#{year}/#{month}/#{day}/") {
+      date_iso_splitted.join(" ")
+    }
   end
 
   def _render_post post
     [
       h2 { post.title },
       p { post.body },
-      h6 { (_categories post).join(" ") }
+      h6 {[ "Category: ", (_categories post).join(" ") ]},
+      p("class"=>"posted-at") { 
+        "Posted at #{i { _posted_at post }}"
+      }
     ]
   end
 

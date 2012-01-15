@@ -27,7 +27,7 @@ class BlogController < Sinatra::Base
     ).render
   end
 
-  get '/posts/category/:category' do |category|
+  get '/posts/category/:category/' do |category|
     (PostsView.new request, Category.all(
                               :name=>category
                             ).posts.sort.reverse

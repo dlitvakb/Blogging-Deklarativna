@@ -44,7 +44,7 @@ body {
 }
 
 footer {
-  position: absolute;
+  position: fixed;
   width: 97%;
   bottom: 0px !important;
 }
@@ -111,9 +111,6 @@ a:hover {
 }
 
 footer {
-    background: url('/media/images/back.png') no-repeat;
-    background-size: 100% 100%;
-
     padding: 20px 20px 10px;
     height: 50px; 
     margin-top: 20px;
