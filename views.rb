@@ -211,18 +211,12 @@ class AboutView < BaseView
 end
 
 class PostsView < BaseView
-  def initialize request, posts
+  def initialize request, displaying_posts, all_posts=nil
     super request
-    @posts = posts
+    @displaying_posts = displaying_posts
+    @all_posts = all_posts
+    @all_posts ||= @displaying_posts
     @title = "Deklarativna's Blog"
-  end
-
-  def _scripts
-    super << javascript {
-      "$(document).ready(function () {
-         $('#content').addClass('span12');
-       });"
-    }
   end
 
   def _nav_bar_items
@@ -252,21 +246,48 @@ class PostsView < BaseView
 
   def _render_post post
     [
-      h2 { post.title },
-      p { post.body },
-      h6 {[ "Category: ", (_categories post).join(" ") ]},
-      p("class"=>"posted-at") { 
-        "Posted at #{i { _posted_at post }}"
-      }
+      div("class"=>"post") {[
+        h2 { post.title },
+        p { post.body },
+        h6 {[ "Category: ", (_categories post).join(" ") ]},
+        p("class"=>"posted-at") { 
+          "Posted at #{i { _posted_at post }}"
+        }
+      ]}
     ]
   end
 
-  def _content
+  def _posts
     posts_content = []
-    @posts.each do |e|
+    @displaying_posts.each do |e|
       posts_content += _render_post e
     end
     posts_content
+  end
+
+  def _recent_posts
+    recent_posts = []
+    @all_posts.each do |e|
+      recent_posts << p { a("href"=>"/post/#{e.id}/") { e.title } }
+    end
+    recent_posts
+  end
+
+  def _sidebar
+    [
+      h3 { a("href"=>"/") { "Deklarativna" }},
+      hr,
+      h4 { "Recent Posts" }
+    ] + _recent_posts
+  end
+
+  def _content
+    [
+      div("class"=>"row") {[
+        div("id"=>"posts", "class"=>"span12") { _posts },
+        div("id"=>"sidebar", "class"=>"span4") { _sidebar }
+      ]}
+    ]
   end
 end
 
