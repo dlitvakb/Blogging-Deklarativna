@@ -41,7 +41,7 @@ class BlogController < Sinatra::Base
   post '/posts/create/' do
     new_post = Post.create(
                  :title=>params['title'],
-                 :body=>params['body'],
+                 :body=>params['body'].gsub("\n","<br />")
               )
 
     categories = params['categories'].split(',')
