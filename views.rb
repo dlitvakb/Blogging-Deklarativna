@@ -165,15 +165,19 @@ class PostsView < BaseView
     super << (__nav_bar_item "Create Post", "/posts/create/", false)
   end
 
-  def _render_post post
+  def _categories post
     categories = []
     post.categories.each do |category|
       categories << a("href"=>"/posts/category/#{category.name}") { category.name }
     end
+    categories
+  end
+
+  def _render_post post
     [
       h2 { post.title },
       p { post.body },
-      h6 { categories.join(" ") }
+      h6 { (_categories post).join(" ") }
     ]
   end
 
