@@ -268,7 +268,7 @@ class PostsView < BaseView
   def _recent_posts
     recent_posts = []
     @all_posts.each do |e|
-      recent_posts << p { a("href"=>"/post/#{e.id}/") { e.title } }
+      recent_posts << p { a("href"=>"/posts/#{e.id}/") { e.title } }
     end
     recent_posts
   end

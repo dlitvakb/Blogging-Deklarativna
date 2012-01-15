@@ -7,6 +7,10 @@ class BlogController < Sinatra::Base
     Post.all(:order=>[:created_at.desc], :limit=>5)
   end
 
+  def _render_posts request, posts_to_render
+    (PostsView.new request, posts_to_render, _get_last_posts).render
+  end
+
   get '/' do
     (IndexView.new request).render
   end
@@ -16,40 +20,40 @@ class BlogController < Sinatra::Base
   end
 
   get '/posts/' do
-    (PostsView.new request,
-                   Post.all(:order=>[:created_at.desc], :limit=>10),
-                   _get_last_posts
-    ).render
+    _render_posts request,
+                  Post.all(:order=>[:created_at.desc], :limit=>10)
   end
 
-  get '/post/:post_id/' do |post_id|
-    (PostsView.new request,
-                   [Post.get(post_id)],
-                   _get_last_posts
-    ).render
+  get '/posts/page/:page/' do |page|
+    _render_posts request,
+                  Post.all(
+                    :order=>[:created_at.desc],
+                    :limit=>10,
+                    :id.gt=>(page.to_i * 10)
+                  )
+  end
+
+  get '/posts/:post_id/' do |post_id|
+    _render_posts request, [Post.get(post_id)]
   end
 
   get %r{/posts/(?<year>\d{4})/(?<month>\d{2})/(?<day>\d{2})/?} do
     date = Date.new params[:year].to_i,
                     params[:month].to_i,
                     params[:day].to_i
-    (PostsView.new request,
-                   Post.all(
-                      :created_at.gt=>date.to_s,
-                      :created_at.lt=>(date + 1).to_s,
-                      :order=>[:created_at.desc]
-                    ),
-                    _get_last_posts
-    ).render
+    _render_posts request,
+                  Post.all(
+                    :created_at.gt=>date.to_s,
+                    :created_at.lt=>(date + 1).to_s,
+                    :order=>[:created_at.desc]
+                  )
   end
 
   get '/posts/category/:category/' do |category|
-    (PostsView.new request,
-                   Category.all(
-                     :name=>category
-                   ).posts.sort.reverse,
-                   _get_last_posts
-    ).render
+    _render_posts request,
+                  Category.all(
+                    :name=>category
+                  ).posts.sort.reverse
   end
 
   get '/posts/create/' do
