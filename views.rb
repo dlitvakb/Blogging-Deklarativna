@@ -247,9 +247,11 @@ class PostsView < BaseView
   def _render_post post
     [
       div("class"=>"post") {[
-        h2 { post.title },
-        p { post.body },
-        h6 {[ "Category: ", (_categories post).join(" ") ]},
+        h2 { a("href"=>"/posts/#{post.id}/") { post.title }},
+        p("class"=>"post-body") { post.body },
+        p("class"=>"categories") {
+          [ "Category: ", (_categories post).join(" ") ]
+        },
         p("class"=>"posted-at") { 
           "Posted at #{i { _posted_at post }}"
         }
