@@ -135,7 +135,8 @@ class IndexView < BaseView
              Also, it was created as teaching material for my students."
           },
           p {
-            a("href"=>"http://www.github.com/dlitvakb/deklarativna", "class"=>"btn") {
+            a("href"=>"http://www.github.com/dlitvakb/deklarativna",
+              "class"=>"btn") {
               "Find out more! &raquo;"
             }
           }
@@ -147,9 +148,9 @@ class IndexView < BaseView
              I've found that the best resources to fit my intentions were
              #{a("href"=>"http://www.sinatrarb.com") {"Sinatra"}} and
              #{a("href"=>"http://www.datamapper.org") {"DataMapper"}}. #{br}
-             As I've found #{a("href"=>"http://www.ruby-lang.org") {"Ruby"}} to be
-             an amazing programming language to write in a declarative way,
-             it has been, therefore my desicion to use it"
+             As I've found #{a("href"=>"http://www.ruby-lang.org") {"Ruby"}}
+             to be an amazing programming language to write in a
+             declarative way, it has been, therefore my desicion to use it"
           }
         ]}
       ]}
@@ -226,7 +227,9 @@ class PostsView < BaseView
   def _categories post
     categories = []
     post.categories.each do |category|
-      categories << a("href"=>"/posts/category/#{category.name}/") { category.name }
+      categories << a("href"=>"/posts/category/#{category.name}/") {
+                      category.name
+                    }
     end
     categories
   end
