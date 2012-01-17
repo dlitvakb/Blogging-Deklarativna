@@ -55,8 +55,8 @@ class BaseView < BaseTemplate
     div("class"=>"topbar") {
       div("class"=>"fill") {
         div("class"=>"container") {[
-            a("class"=>"brand", "href"=>"/") { "Deklarativna" },
-            _nav_bar
+          a("class"=>"brand", "href"=>"/") { "Deklarativna" },
+          _nav_bar
         ]}
       }
     }
@@ -96,6 +96,21 @@ class BaseView < BaseTemplate
   def _extra_body
     []
   end
+
+  def _input label_text, label_for, widget
+    div("class"=>"clearfix") {[
+      label("for"=>label_for) { label_text },
+      div("class"=>"input") { widget }
+    ]}
+  end
+
+  def _submit text
+    div("class"=>"clearfix") {
+      div("class"=>"input") {
+        submit("value"=>text)
+      }
+    }
+  end
 end
 
 class IndexView < BaseView
@@ -104,7 +119,7 @@ class IndexView < BaseView
       div("class"=>"hero-unit") {[
         h1 { "Deklarativna's Blog" },
         p { "A blog about declarative programming" },
-        p { 
+        p {
           a("href"=>"/posts/", "class"=>"btn primary large") {
             "To the Posts! &raquo;"
           }
@@ -165,7 +180,7 @@ class AboutView < BaseView
   end
 
   def _about_me
-    p { "My name is #{b { "David Litvak Bruno" }}, 
+    p { "My name is #{b { "David Litvak Bruno" }},
          I'm a software developer from Argentina. #{br}
          I'm a framework development devotee,
          and my main programming languages are
@@ -212,16 +227,18 @@ class AboutView < BaseView
 end
 
 class PostsView < BaseView
-  def initialize request, displaying_posts, all_posts=nil
+  def initialize request, displaying_posts, recent_posts=nil
     super request
     @displaying_posts = displaying_posts
-    @all_posts = all_posts
-    @all_posts ||= @displaying_posts
+    @recent_posts = recent_posts
     @title = "Deklarativna's Blog"
   end
 
   def _nav_bar_items
-    super << (__nav_bar_item "Create Post", "/posts/create/", false)
+    super << (__nav_bar_item "Create Post",
+                             "/post/create/",
+                             (@request.path_info == '/post/create/')
+             )
   end
 
   def _categories post
@@ -234,16 +251,27 @@ class PostsView < BaseView
     categories
   end
 
-  def _posted_at post
-    date_iso_splitted = post.created_at.to_s.split("T")
+  def _sanitize_iso_timestamp timestamp
+    date_iso_splitted = timestamp.split("T")
     date_iso_splitted[1] = date_iso_splitted[1].split("-")[0]
-    date_part = date_iso_splitted[0].split("-")
+    date_iso_splitted
+  end
+
+  def _posted_at post
+    datetime = (_sanitize_iso_timestamp post.created_at.to_s)
+    date_part = datetime[0].split("-")
     year = date_part[0]
     month = date_part[1]
     day = date_part[2]
 
     a("href"=>"/posts/#{year}/#{month}/#{day}/") {
-      date_iso_splitted.join(" ")
+      datetime.join(" ")
+    }
+  end
+
+  def _comments_extra post
+    a("href"=>"/posts/#{post.id}/#comments", "class"=>"extra-comments") {
+      "Comments (#{post.comments.size})"
     }
   end
 
@@ -255,8 +283,8 @@ class PostsView < BaseView
         p("class"=>"categories") {
           [ "Category: ", (_categories post).join(" ") ]
         },
-        p("class"=>"posted-at") { 
-          "Posted at #{i { _posted_at post }}"
+        p("class"=>"posted-at") {
+          "Posted at #{i { _posted_at post }}" + (_comments_extra post)
         }
       ]}
     ]
@@ -272,7 +300,7 @@ class PostsView < BaseView
 
   def _recent_posts
     recent_posts = []
-    @all_posts.each do |e|
+    @recent_posts.each do |e|
       recent_posts << p { a("href"=>"/posts/#{e.id}/") { e.title } }
     end
     recent_posts
@@ -296,26 +324,76 @@ class PostsView < BaseView
   end
 end
 
-class FormView < BaseView
-  def _input label_text, label_for, widget
-    div("class"=>"clearfix") {[
-      label("for"=>label_for) { label_text },
-      div("class"=>"input") { widget }
+class PostDetailView < PostsView
+  def initialize request, post, recent_posts=nil
+    @request = request
+    @post = post
+    @recent_posts = recent_posts
+    @title = "Deklarativna's Blog - #{@post.title}"
+  end
+
+  def _comments_extra post
+    ""
+  end
+
+  def _commentor comment
+    return (a("href"=>comment.url) { comment.posted_by }) if comment.url != ""
+    comment.posted_by
+  end
+
+  def _comment comment
+    datetime = (_sanitize_iso_timestamp comment.created_at.to_s)
+
+    div("class"=>"comment") {[
+      h3 { _commentor comment},
+      p { comment.body },
+      p("class"=>"posted-at") {
+        "#{_commentor comment} wrote this at #{datetime[0]} #{datetime[1]}"
+      }
     ]}
   end
 
-  def _submit text
-    div("class"=>"clearfix") {
-      div("class"=>"input") {
-        submit("value"=>text)
-      }
+  def _render_comments post
+    comments = []
+    post.comments.each { |e|
+      comments << (_comment e)
     }
+    comments
+  end
+
+  def _comments post
+    div("class"=>"comments", "id"=>"comments") {[
+      h3 { "Comments (#{post.comments.size})" }
+    ] + (_render_comments post)
+    }
+  end
+
+  def _new_comment_form
+    form("class"=>"comment-form",
+         "method"=>"post",
+         "action"=>"/posts/#{@post.id}/comments/create/") {[
+      h5 { "Add your comments:" },
+      (_input "Name", "name", text("name"=>"posted_by")),
+      (_input "Website (Optional)", "url", text("name"=>"url")),
+      (_input "Message", "message", textarea("name"=>"body", "rows"=>"5")),
+      _submit("Comment!")
+    ]}
+  end
+
+  def _render_post post
+    (super post) << (_comments post) << (_new_comment_form)
+  end
+
+  def _posts
+    [
+      (_render_post @post)
+    ]
   end
 end
 
-class PostCreateView < FormView
+class PostCreateView < PostsView
   def initialize request
-    super request
+    @request = request
     @title = "Deklarativna's Blog - New Post"
   end
 

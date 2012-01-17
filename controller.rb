@@ -7,8 +7,33 @@ class BlogController < Sinatra::Base
     Post.all(:order=>[:created_at.desc], :limit=>5)
   end
 
+  def _render_posts_helper view, request, posts_to_render
+    (view.new request, posts_to_render, _get_last_posts).render
+  end
+
   def _render_posts request, posts_to_render
-    (PostsView.new request, posts_to_render, _get_last_posts).render
+    _render_posts_helper PostsView, request, posts_to_render
+  end
+
+  def _render_single_post request, post_to_render
+    _render_posts_helper PostDetailView, request, post_to_render
+  end
+
+  def _sanitize_line_breaks message
+    message.gsub("\n", "<br />")
+  end
+
+  def _comment_url url
+    return url if url.include? "http://"
+    "http://" + url
+  end
+
+  def _validate_comment_create params
+    raise "creation error" if params['body'] == "" or params["posted_by"] == ""
+  end
+
+  def _validate_comment_create params
+    raise "creation error" if params['body'] == "" or params["title"] == ""
   end
 
   get '/' do
@@ -34,7 +59,7 @@ class BlogController < Sinatra::Base
   end
 
   get '/posts/:post_id/' do |post_id|
-    _render_posts request, [Post.get(post_id)]
+    _render_single_post request, Post.get(post_id)
   end
 
   get %r{/posts/(?<year>\d{4})/(?<month>\d{2})/(?<day>\d{2})/?} do
@@ -49,6 +74,23 @@ class BlogController < Sinatra::Base
                   )
   end
 
+  post '/posts/:post_id/comments/create/' do |post_id|
+    post = Post.get(post_id)
+    begin
+      _validate_comment_create params
+
+      new_comment = Comment.create(
+                      :posted_by=>params['posted_by'],
+                      :url=>(_comment_url params['url']),
+                      :body=>(_sanitize_line_breaks params['body'])
+                    )
+      post.comments << new_comment
+      post.save
+    ensure
+      redirect "/posts/#{post_id}/"
+    end
+  end
+
   get '/posts/category/:category/' do |category|
     _render_posts request,
                   Category.all(
@@ -56,26 +98,30 @@ class BlogController < Sinatra::Base
                   ).posts.sort.reverse
   end
 
-  get '/posts/create/' do
+  get '/post/create/' do
     (PostCreateView.new request).render
   end
 
-  post '/posts/create/' do
-    new_post = Post.create(
-                 :title=>params['title'],
-                 :body=>params['body'].gsub("\n","<br />")
-              )
+  post '/post/create/' do
+    begin
+      _validate_post_create params
+      new_post = Post.create(
+                   :title=>params['title'],
+                   :body=>(_sanitize_line_breaks params['body'])
+                )
 
-    categories = params['categories'].split(',')
-    categories.each do |category|
-      added_category = Category.first_or_create(:name=>category)
-      new_post.categories << added_category
+      categories = params['categories'].split(',')
+      categories.each do |category|
+        added_category = Category.first_or_create(:name=>category)
+        new_post.categories << added_category
+      end
+
+      new_post.save
+    ensure
+      redirect '/posts/'
     end
-
-    new_post.save
-    redirect '/posts/'
   end
-  
+
   set :public_folder, File.dirname(__FILE__) + '/media'
 end
 

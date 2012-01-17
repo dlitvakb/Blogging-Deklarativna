@@ -7,10 +7,10 @@ DataMapper.setup(:default, "sqlite:///#{File.dirname(__FILE__)}/blogging.db")
 class Post
   include DataMapper::Resource
 
-  property :id,         Serial    
-  property :title,      String    
-  property :body,       Text      
-  property :created_at, DateTime  
+  property :id,         Serial
+  property :title,      String
+  property :body,       Text
+  property :created_at, DateTime
 
   has n, :comments
   has n, :categorizations
@@ -22,9 +22,9 @@ class Comment
 
   property :id,         Serial
   property :posted_by,  String
-  property :email,      String
   property :url,        String
   property :body,       Text
+  property :created_at, DateTime
 
   belongs_to :post
 end

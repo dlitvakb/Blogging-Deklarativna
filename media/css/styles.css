@@ -101,3 +101,27 @@ a:hover {
   margin-top: -8px;
   margin-bottom: -1px;
 }
+
+.extra-comments {
+  float: right;
+}
+
+.comment {
+  background: #eeeeee;
+  border: 1px dashed #cccccc;
+  padding: 16px;
+  padding-top: 0;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.comment h3 {
+  font-size: 12px;
+  text-decoration: underline;
+  font-family: sans-serif;
+}
+
+.comment p {
+  font-size: 11px;
+  margin-top: -4px;
+}
