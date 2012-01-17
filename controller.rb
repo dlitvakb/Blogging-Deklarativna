@@ -1,22 +1,9 @@
 require_relative 'models.rb'
 require_relative 'views.rb'
-require 'sinatra/base'
 
-class BlogController < Sinatra::Base
+class PostsController
   def _get_last_posts
     Post.all(:order=>[:created_at.desc], :limit=>5)
-  end
-
-  def _render_posts_helper view, request, posts_to_render
-    (view.new request, posts_to_render, _get_last_posts).render
-  end
-
-  def _render_posts request, posts_to_render
-    _render_posts_helper PostsView, request, posts_to_render
-  end
-
-  def _render_single_post request, post_to_render
-    _render_posts_helper PostDetailView, request, post_to_render
   end
 
   def _sanitize_line_breaks message
@@ -28,44 +15,34 @@ class BlogController < Sinatra::Base
     "http://" + url
   end
 
-  def _validate_comment_create params
-    raise "creation error" if params['body'] == "" or params["posted_by"] == ""
+  def _render_posts_helper view, request, posts_to_render
+    (view.new request, posts_to_render, _get_last_posts).render
   end
 
-  def _validate_comment_create params
-    raise "creation error" if params['body'] == "" or params["title"] == ""
+  def _render_single_post request, post_to_render
+    _render_posts_helper PostDetailView, request, post_to_render
   end
 
-  get '/' do
-    (IndexView.new request).render
+  def _render_posts request, posts_to_render
+    _render_posts_helper PostsView, request, posts_to_render
   end
 
-  get '/about/' do
-    (AboutView.new request).render
+  def _validate_create *args
+    raise "creation error" if args.any? { |e| e.empty? }
   end
 
-  get '/posts/' do
-    _render_posts request,
-                  Post.all(:order=>[:created_at.desc], :limit=>10)
-  end
-
-  get '/posts/page/:page/' do |page|
-    _render_posts request,
-                  Post.all(
-                    :order=>[:created_at.desc],
-                    :limit=>10,
-                    :id.gt=>(page.to_i * 10)
-                  )
-  end
-
-  get '/posts/:post_id/' do |post_id|
+  def render_by_id request, post_id
     _render_single_post request, Post.get(post_id)
   end
 
-  get %r{/posts/(?<year>\d{4})/(?<month>\d{2})/(?<day>\d{2})/?} do
-    date = Date.new params[:year].to_i,
-                    params[:month].to_i,
-                    params[:day].to_i
+  def render_by_category request, category
+    _render_posts request,
+                  Category.all(
+                    :name=>category
+                  ).posts.sort.reverse
+  end
+
+  def render_by_date request, date
     _render_posts request,
                   Post.all(
                     :created_at.gt=>date.to_s,
@@ -74,55 +51,59 @@ class BlogController < Sinatra::Base
                   )
   end
 
-  post '/posts/:post_id/comments/create/' do |post_id|
-    post = Post.get(post_id)
-    begin
-      _validate_comment_create params
-
-      new_comment = Comment.create(
-                      :posted_by=>params['posted_by'],
-                      :url=>(_comment_url params['url']),
-                      :body=>(_sanitize_line_breaks params['body'])
-                    )
-      post.comments << new_comment
-      post.save
-    ensure
-      redirect "/posts/#{post_id}/"
-    end
-  end
-
-  get '/posts/category/:category/' do |category|
+  def render_for_page request, page_number
     _render_posts request,
-                  Category.all(
-                    :name=>category
-                  ).posts.sort.reverse
+                  Post.all(
+                    :order=>[:created_at.desc],
+                    :limit=>10,
+                    :id.gt=>(page_number * 10)
+                  )
   end
 
-  get '/post/create/' do
+  def render_all request
+    _render_posts request,
+                  Post.all(:order=>[:created_at.desc], :limit=>10)
+  end
+
+  def create_post_form request
     (PostCreateView.new request).render
   end
 
-  post '/post/create/' do
-    begin
-      _validate_post_create params
-      new_post = Post.create(
-                   :title=>params['title'],
-                   :body=>(_sanitize_line_breaks params['body'])
-                )
+  def create_post title, body, categories
+    _validate_create title, body
+    new_post = Post.create(
+                 :title=>params['title'],
+                 :body=>(_sanitize_line_breaks params['body'])
+               )
 
-      categories = params['categories'].split(',')
-      categories.each do |category|
-        added_category = Category.first_or_create(:name=>category)
-        new_post.categories << added_category
-      end
-
-      new_post.save
-    ensure
-      redirect '/posts/'
+    categories.each do |category|
+      added_category = Category.first_or_create(:name=>category)
+      new_post.categories << added_category
     end
+
+    new_post.save
   end
 
-  set :public_folder, File.dirname(__FILE__) + '/media'
+  def create_comment_for post_id, name, url, message
+    post = Post.get(post_id)
+    _validate_create name, message
+
+    new_comment = Comment.create(
+                    :posted_by=>name,
+                    :url=>(_comment_url url),
+                    :body=>(_sanitize_line_breaks body)
+                  )
+    post.comments << new_comment
+    post.save
+  end
 end
 
-BlogController.run!
+class StaticsController
+  def index request
+    (IndexView.new request).render
+  end
+
+  def about request
+    (AboutView.new request).render
+  end
+end
