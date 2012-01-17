@@ -119,6 +119,11 @@ a:hover {
   font-size: 12px;
   text-decoration: underline;
   font-family: sans-serif;
+  color: #222222;
+}
+
+.comment h3 a {
+  color: #3333ff;
 }
 
 .comment p {
