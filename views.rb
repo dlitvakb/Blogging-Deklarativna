@@ -337,7 +337,7 @@ class PostDetailView < PostsView
   end
 
   def _commentor comment
-    return (a("href"=>comment.url) { comment.posted_by }) if comment.url != ""
+    return (a("href"=>comment.url) { comment.posted_by }) if !comment.url.empty?
     comment.posted_by
   end
 
@@ -398,7 +398,7 @@ class PostCreateView < PostsView
   end
 
   def _form
-    form("method"=>"post","action"=>"/posts/create/") {[
+    form("method"=>"post","action"=>"/post/create/") {[
       (_input "Title", "title", text("name"=>"title")),
       (_input "Body", "body", textarea("name"=>"body", "rows"=>"10")),
       (_input "Categories", "categories", text("name"=>"categories")),
