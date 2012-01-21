@@ -76,14 +76,22 @@ class CommentCreateService < CreationService
 end
 
 class UserLoginService < CreationWithEncryptionService
-  def login name, password
-    User.get(:name=>name,
-             :passwod=>(_sha1 password)
-            )
+  def login username, password
+    user = User.first(
+             :user_name=>username,
+             :password=>(_sha1 password)
+           )
+    user
   end
 
   def create_form request
     (UserLoginView.new request).render
+  end
+end
+
+class UserLoginRetryService < UserLoginService
+  def create_form request
+    (UserLoginRetryView.new request).render
   end
 end
 

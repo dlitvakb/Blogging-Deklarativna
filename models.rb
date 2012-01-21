@@ -7,8 +7,8 @@ class Post
   include DataMapper::Resource
 
   property :id,         Serial
-  property :title,      String
-  property :body,       Text
+  property :title,      String, :required => true
+  property :body,       Text,   :required => true
   property :created_at, DateTime
 
   has n, :comments
@@ -20,9 +20,9 @@ class Comment
   include DataMapper::Resource
 
   property :id,         Serial
-  property :posted_by,  String
-  property :url,        String
-  property :body,       Text
+  property :posted_by,  String, :required => true
+  property :url,        String, :format => :url
+  property :body,       Text,   :required => true
   property :created_at, DateTime
 
   belongs_to :post
@@ -52,9 +52,9 @@ class User
   include DataMapper::Resource
 
   property :id,         Serial
-  property :user_name,  String
-  property :password,   String, :length => 40
-  property :email,      String
+  property :user_name,  String, :required => true, :unique => true
+  property :password,   String, :length => 40, :required => true
+  property :email,      String, :format => :email_address
   property :is_admin,   Boolean, :default => false
 end
 

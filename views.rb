@@ -235,11 +235,14 @@ class PostsView < BaseView
   end
 
   def _nav_bar_items
-     return super if !(@request.instance_variable_get "@user").nil?
+     if !(@request.instance_variable_get "@user").nil?
+       return super
+     end
+
      super << (__nav_bar_item "Create Post",
                              "/post/create/",
                              (@request.path_info == '/post/create/')
-             )
+              )
   end
 
   def _categories post
@@ -455,6 +458,22 @@ class UserLoginView < PostsView
   def _content
     [
       h2 { "Login ..." },
+      _form
+    ]
+  end
+end
+
+class UserLoginRetryView < UserLoginView
+  def _error_message
+    div("class"=>"alert-message warning") {
+      p { "The username or password was incorrect" }
+    }
+  end
+
+  def _content
+    [
+      h2 { "Login ..." },
+      _error_message,
       _form
     ]
   end
