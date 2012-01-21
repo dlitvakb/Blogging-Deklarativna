@@ -235,7 +235,8 @@ class PostsView < BaseView
   end
 
   def _nav_bar_items
-    super << (__nav_bar_item "Create Post",
+     return super if !(@request.instance_variable_get "@user").nil?
+     super << (__nav_bar_item "Create Post",
                              "/post/create/",
                              (@request.path_info == '/post/create/')
              )
@@ -432,6 +433,28 @@ class UserCreateView < PostsView
   def _content
     [
       h2 { "New User..." },
+      _form
+    ]
+  end
+end
+
+class UserLoginView < PostsView
+  def initialize request
+    @request = request
+    @title = "Deklarativna's Blog - Login"
+  end
+
+  def _form
+    form("method"=>"post","action"=>"/user/login/") {[
+      (_input "Name", "name", text("name"=>"name")),
+      (_input "Password", "password", password("name"=>"password")),
+      _submit("Login!")
+    ]}
+  end
+
+  def _content
+    [
+      h2 { "Login ..." },
       _form
     ]
   end

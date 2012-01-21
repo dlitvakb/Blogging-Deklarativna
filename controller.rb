@@ -2,6 +2,18 @@ require_relative 'service.rb'
 require 'sinatra/base'
 
 class BlogController < Sinatra::Base
+  enable :sessions
+  helpers do
+    def _add_user request
+      user = session[:user]
+      request.instance_variable_set("@user", user) if !user.nil?
+    end
+
+    def require_login
+      raise if session[:user].nil?
+    end
+  end
+
   get '/' do
     StaticsService.new.index request
   end
@@ -45,10 +57,12 @@ class BlogController < Sinatra::Base
   end
 
   get '/post/create/' do
+    require_login
     PostCreateService.new.create_form request
   end
 
   post '/post/create/' do
+    require_login
     begin
       PostCreateService.new.create params['title'],
                                       params['body'],
@@ -69,6 +83,20 @@ class BlogController < Sinatra::Base
                                    params['email']
     ensure
       redirect '/user/login/'
+    end
+  end
+
+  get '/user/login/' do
+    UserLoginService.new.create_form request
+  end
+
+  post '/user/login/' do
+    begin
+      session[:user] = UserLoginService.new.login params['user'],
+                                                  params['passord']
+      _add_user request
+    rescue
+      redirect '/user/retry/'
     end
   end
 

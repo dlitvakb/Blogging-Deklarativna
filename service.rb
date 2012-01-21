@@ -6,15 +6,20 @@ require_relative 'validations.rb'
 class CreationService
   include ValidatesCreation
   include HTMLSanitizer
+
 end
 
-class UserCreateService < CreationService
-  def create_form request
-    (UserCreateView.new request).render
-  end
+class CreationWithEncryptionService < CreationService
 
   def _sha1 password
     Digest::SHA1.hexdigest(password)
+  end
+
+end
+
+class UserCreateService < CreationWithEncryptionService
+  def create_form request
+    (UserCreateView.new request).render
   end
 
   def create name, password, email
@@ -67,6 +72,18 @@ class CommentCreateService < CreationService
                   )
     post.comments << new_comment
     post.save
+  end
+end
+
+class UserLoginService < CreationWithEncryptionService
+  def login name, password
+    User.get(:name=>name,
+             :passwod=>(_sha1 password)
+            )
+  end
+
+  def create_form request
+    (UserLoginView.new request).render
   end
 end
 
