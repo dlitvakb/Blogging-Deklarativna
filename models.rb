@@ -3,7 +3,6 @@ require 'data_mapper'
 DataMapper::Logger.new($stdout, :debug)
 DataMapper.setup(:default, "sqlite:///#{File.dirname(__FILE__)}/blogging.db")
 
-
 class Post
   include DataMapper::Resource
 
@@ -47,6 +46,16 @@ class Categorization
 
   belongs_to :category
   belongs_to :post
+end
+
+class User
+  include DataMapper::Resource
+
+  property :id,         Serial
+  property :user_name,  String
+  property :password,   String, :length => 40
+  property :email,      String
+  property :is_admin,   Boolean, :default => false
 end
 
 DataMapper.finalize

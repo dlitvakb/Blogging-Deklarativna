@@ -1,3 +1,4 @@
+require 'digest/sha1'
 require_relative 'models.rb'
 require_relative 'views.rb'
 require_relative 'validations.rb'
@@ -7,12 +8,32 @@ class CreationService
   include HTMLSanitizer
 end
 
+class UserCreateService < CreationService
+  def create_form request
+    (UserCreateView.new request).render
+  end
+
+  def _sha1 password
+    Digest::SHA1.hexdigest(password)
+  end
+
+  def create name, password, email
+    _validate_create name, password
+    new_user = User.create(
+                 :user_name=>name,
+                 :password=>(_sha1 password),
+                 :email=>email
+               )
+    new_user.save
+  end
+end
+
 class PostCreateService < CreationService
-  def create_post_form request
+  def create_form request
     (PostCreateView.new request).render
   end
 
-  def create_post title, body, categories
+  def create title, body, categories
     _validate_create title, body
     new_post = Post.create(
                  :title=>title,
@@ -35,7 +56,7 @@ class CommentCreateService < CreationService
     url
   end
 
-  def create_comment_for post_id, name, url, body
+  def create_for post_id, name, url, body
     post = Post.get(post_id)
     _validate_create name, body
 

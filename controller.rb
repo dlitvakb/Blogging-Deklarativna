@@ -31,7 +31,7 @@ class BlogController < Sinatra::Base
 
   post '/posts/:post_id/comments/create/' do |post_id|
     begin
-      CommentCreateService.new.create_comment_for post_id,
+      CommentCreateService.new.create_for post_id,
                                              params['posted_by'],
                                              params['url'],
                                              params['body']
@@ -45,16 +45,30 @@ class BlogController < Sinatra::Base
   end
 
   get '/post/create/' do
-    PostCreateService.new.create_post_form request
+    PostCreateService.new.create_form request
   end
 
   post '/post/create/' do
     begin
-      PostCreateService.new.create_post params['title'],
+      PostCreateService.new.create params['title'],
                                       params['body'],
                                       params['categories'].split(',') 
     ensure
       redirect '/posts/'
+    end
+  end
+
+  get '/user/create/' do
+    UserCreateService.new.create_form request
+  end
+
+  post '/user/create/' do
+    begin
+      UserCreateService.new.create params['name'],
+                                   params['password'],
+                                   params['email']
+    ensure
+      redirect '/user/login/'
     end
   end
 

@@ -364,7 +364,7 @@ class PostDetailView < PostsView
   def _comments post
     div("class"=>"comments", "id"=>"comments") {[
       h3 { "Comments (#{post.comments.size})" }
-    ] + (_render_comments post)
+      ] + (_render_comments post)
     }
   end
 
@@ -409,6 +409,29 @@ class PostCreateView < PostsView
   def _content
     [
       h2 { "New Post..." },
+      _form
+    ]
+  end
+end
+
+class UserCreateView < PostsView
+  def initialize request
+    @request = request
+    @title = "Deklarativna's Blog - New User"
+  end
+
+  def _form
+    form("method"=>"post","action"=>"/user/create/") {[
+      (_input "Name", "name", text("name"=>"name")),
+      (_input "Password", "password", password("name"=>"password")),
+      (_input "E-Mail", "email", text("name"=>"email")),
+      _submit("Create!")
+    ]}
+  end
+
+  def _content
+    [
+      h2 { "New User..." },
       _form
     ]
   end
