@@ -6,7 +6,6 @@ require_relative 'validations.rb'
 class CreationService
   include ValidatesCreation
   include HTMLSanitizer
-
 end
 
 class CreationWithEncryptionService < CreationService
@@ -81,6 +80,7 @@ class UserLoginService < CreationWithEncryptionService
              :user_name=>username,
              :password=>(_sha1 password)
            )
+    raise if user.nil?
     user
   end
 

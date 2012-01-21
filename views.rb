@@ -235,14 +235,25 @@ class PostsView < BaseView
   end
 
   def _nav_bar_items
-     if !(@request.instance_variable_get "@user").nil?
-       return super
-     end
+    begin
+      if (@request.user).nil?
+        return super << (__nav_bar_item "Login",
+                              "/user/login/",
+                              (@request.path_info == '/user/login/')
+                        )
+      end
 
-     super << (__nav_bar_item "Create Post",
-                             "/post/create/",
-                             (@request.path_info == '/post/create/')
-              )
+      if @request.user.is_admin
+        return super << (__nav_bar_item "Create Post",
+                              "/post/create/",
+                              (@request.path_info == '/post/create/')
+                   ) << (__nav_bar_item "Logout",
+                              "/user/logout/",
+                              false)
+      end
+    rescue
+      super
+    end
   end
 
   def _categories post

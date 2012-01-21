@@ -1,33 +1,45 @@
 require_relative 'service.rb'
 require 'sinatra/base'
+require 'sinatra'
+
+class Sinatra::Request
+  def user
+    @user
+  end
+
+  def user= user_object
+     @user = user_object
+  end
+end
 
 class BlogController < Sinatra::Base
   enable :sessions
+
   helpers do
     def _add_user request, user=nil
       session_user = session[:user]
       session_user ||= user
-      request.instance_variable_set("@user", session_user) if !session_user.nil?
-      puts "user #{session_user}"
+
+      request.user = session_user
     end
 
     def require_login request
       _add_user request
-      raise if (request.cookies.key? "user").nil?
+      raise if (request.user).nil?
     end
   end
 
   get '/' do
-    session["user"] ||= nil
+    _add_user request
     StaticsService.new.index request
   end
 
   get '/about/' do
+    _add_user request
     StaticsService.new.about request
   end
 
   get '/posts/' do
-    session["user"] ||= nil
     _add_user request
     PostsService.new.render_all request
   end
@@ -52,6 +64,7 @@ class BlogController < Sinatra::Base
 
   post '/posts/:post_id/comments/create/' do |post_id|
     begin
+      _add_user request
       CommentCreateService.new.create_for post_id,
                                              params['posted_by'],
                                              params['url'],
@@ -62,6 +75,7 @@ class BlogController < Sinatra::Base
   end
 
   get '/posts/category/:category/' do |category|
+    _add_user request
     PostsService.new.render_by_category request, category
   end
 
@@ -99,10 +113,16 @@ class BlogController < Sinatra::Base
     UserLoginService.new.create_form request
   end
 
+  get '/user/logout/' do
+    request.user = nil
+    session[:user] = nil
+    redirect '/posts/'
+  end
+
   post '/user/login/' do
     begin
       user = UserLoginService.new.login(
-               params['user'],
+               params['name'],
                params['password']
              )
 
