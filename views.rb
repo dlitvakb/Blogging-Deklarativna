@@ -226,6 +226,22 @@ class AboutView < BaseView
   end
 end
 
+class NotFoundView < BaseView
+  def _content
+    [
+      div("class"=>"hero-unit") {[
+        h1 { "404 - Not Found" },
+        p { "Sorry, the page you were looking for is not here" },
+        p {
+          a("href"=>"/posts/", "class"=>"btn primary large") {
+            "To the Posts! &raquo;"
+          }
+        }
+      ]}
+    ]
+  end
+end
+
 class PostsView < BaseView
   def initialize request, displaying_posts, recent_posts=nil
     super request

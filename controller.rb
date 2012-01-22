@@ -139,6 +139,10 @@ class BlogController < Sinatra::Base
     UserLoginRetryService.new.create_form request
   end
 
+  not_found do
+    StaticsService.new.not_found request
+  end
+
   set :public_folder, File.dirname(__FILE__) + '/media'
 end
 

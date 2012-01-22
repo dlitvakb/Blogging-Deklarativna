@@ -155,4 +155,8 @@ class StaticsService
   def about request
     (AboutView.new request).render
   end
+
+  def not_found request
+    (NotFoundView.new request).render
+  end
 end
