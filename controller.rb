@@ -143,6 +143,11 @@ class BlogController < Sinatra::Base
     StaticsService.new.not_found request
   end
 
+  error do
+    session.clear
+    super
+  end
+
   set :public_folder, File.dirname(__FILE__) + '/media'
 end
 
