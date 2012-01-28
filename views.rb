@@ -251,25 +251,23 @@ class PostsView < BaseView
   end
 
   def _nav_bar_items
-    begin
-      if (@request.user).nil?
-        return super << (__nav_bar_item "Login",
-                              "/user/login/",
-                              (@request.path_info == '/user/login/')
-                        )
-      end
-
-      if @request.user.is_admin
-        return super << (__nav_bar_item "Create Post",
-                              "/post/create/",
-                              (@request.path_info == '/post/create/')
-                   ) << (__nav_bar_item "Logout",
-                              "/user/logout/",
-                              false)
-      end
-    rescue
-      super
+    if (@request.user).nil?
+      return super << (__nav_bar_item "Login",
+                            "/user/login/",
+                            (@request.path_info == '/user/login/')
+                      )
     end
+
+    if @request.user.is_admin
+      return super << (__nav_bar_item "Create Post",
+                            "/post/create/",
+                            (@request.path_info == '/post/create/')
+                 ) << (__nav_bar_item "Logout",
+                            "/user/logout/",
+                            false)
+    end
+
+    return super
   end
 
   def _categories post
@@ -404,7 +402,11 @@ class PostDetailView < PostsView
          "method"=>"post",
          "action"=>"/posts/#{@post.id}/comments/create/") {[
       h5 { "Add your comments:" },
-      (_input "Name", "name", text("name"=>"posted_by")),
+      (_input "Name", "name",
+         text("name"=>"posted_by",
+           "value"=>"#{@request.user.user_name if @request.user.respond_to? :user_name}"
+         )
+      ),
       (_input "Website (Optional)", "url", text("name"=>"url")),
       (_input "Message", "message", textarea("name"=>"body", "rows"=>"5")),
       _submit("Comment!")

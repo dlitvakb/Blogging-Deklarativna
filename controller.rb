@@ -17,6 +17,7 @@ class BlogController < Sinatra::Base
 
   helpers do
     def _add_user request, user=nil
+      session[:user] ||= nil
       session_user = session[:user]
       session_user ||= user
 
@@ -26,6 +27,11 @@ class BlogController < Sinatra::Base
     def require_login request
       _add_user request
       raise if (request.user).nil?
+    end
+
+    def require_admin request
+      require_login request
+      raise if !request.user.is_admin
     end
   end
 
@@ -80,12 +86,12 @@ class BlogController < Sinatra::Base
   end
 
   get '/post/create/' do
-    require_login request
+    require_admin request
     PostCreateService.new.create_form request
   end
 
   post '/post/create/' do
-    require_login request
+    require_admin request
     begin
       PostCreateService.new.create params['title'],
                                       params['body'],
@@ -144,7 +150,7 @@ class BlogController < Sinatra::Base
   end
 
   error do
-    session.clear
+    session[:user] = nil
     super
   end
 
