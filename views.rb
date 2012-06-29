@@ -336,11 +336,7 @@ class PostsView < BaseView
   end
 
   def _posts
-    posts_content = []
-    @displaying_posts.each do |e|
-      posts_content += _render_post e
-    end
-    posts_content
+    @displaying_posts.map { |e| _render_post e }
   end
 
   def _recent_posts
