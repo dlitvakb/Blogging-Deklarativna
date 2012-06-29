@@ -344,11 +344,7 @@ class PostsView < BaseView
   end
 
   def _recent_posts
-    recent_posts = []
-    @recent_posts.each do |e|
-      recent_posts << p { a("href"=>"/posts/#{e.id}/") { e.title } }
-    end
-    recent_posts
+    @recent_posts.map { |e| p { a("href"=>"/posts/#{e.id}/") { e.title } } }
   end
 
   def _sidebar
